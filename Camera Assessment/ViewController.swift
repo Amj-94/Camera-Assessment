@@ -10,8 +10,6 @@ import AVFoundation
 
 class ViewController: UIViewController {
     
-    // MARK: -Overrides
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -20,17 +18,13 @@ class ViewController: UIViewController {
         btCamera.addTarget(self, action: #selector(handleCamera(sender:)), for: .touchUpInside)
         btCamera.setTitle("Capture", for: .normal)
     }
-    
-    // MARK :-Selectors
-    
+
     @objc func handleCamera(sender: UIButton) {
         let vc = CameraVC()
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true, completion: nil)
     }
-    
-    // MARK: -Controls
-    
+
     let btCamera: UIButton = {
         let bt = UIButton()
         bt.setTitleColor(.black, for: .normal)
@@ -40,7 +34,4 @@ class ViewController: UIViewController {
         bt.translatesAutoresizingMaskIntoConstraints = false
         return bt
     }()
-
-
 }
-

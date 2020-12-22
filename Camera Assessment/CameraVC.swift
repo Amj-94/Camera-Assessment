@@ -6,88 +6,82 @@
 //
 
 import UIKit
-import AVFoundation
+import AVKit
+import Vision
 
-class CameraVC: UIViewController {
+class CameraVC: UIViewController, AVCapturePhotoCaptureDelegate {
     
     // MARK: -Properties
+    private lazy var cameraService = CameraService()
+    var testType: String?
+    var leftEyeBrow: [CGPoint]?
+    var rightEyeBrow: [CGPoint]?
+    var noseCrest: [CGPoint]?
     
-    var captureSession = AVCaptureSession()
+    var min: CGFloat?
+    var mid: CGFloat?
+    var max: CGFloat?
+    var faceCropFrame = CGRect.zero
     
-    var backCamera: AVCaptureDevice?
-    var frontCamera: AVCaptureDevice?
-    var currentCamera: AVCaptureDevice?
-    
-    var photoOutPut = AVCapturePhotoOutput()
-    
-    var cameraPreviewLayer: AVCaptureVideoPreviewLayer?
     
     // MARK: -Overrides
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupCameraPreviewView()
         setUpLayOut()
-        setUpCaptureSession()
-        setUpDevice()
-        setUpInputOutput()
-        setUpPreviewLayOut()
-        startRunningCaptureSession()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        cameraService.start()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        cameraService.stop()
+    }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+    
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
     }
     
     // MARK: -Funcs
     
-    func setUpCaptureSession(){
-        captureSession.sessionPreset = AVCaptureSession.Preset.photo
-        
-    }
-    
-    func setUpDevice(){
-        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: .video, position: AVCaptureDevice.Position.unspecified)
-        let devices = deviceDiscoverySession.devices
-        for device in devices {
-            if device.position == .back {
-                backCamera = device
-            } else if device.position == .front {
-                frontCamera = device
+    func setupCameraPreviewView(){
+        let previewView = UIView(frame: .zero)
+        view.addSubview(previewView)
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        previewView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        previewView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        previewView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        cameraService.prepare(previewView: previewView, cameraPosition: .front) { [weak self] success in
+            if success {
+                self?.cameraService.start()
+                self?.cameraService.prepareVisionRequest()
             }
         }
-        currentCamera = frontCamera
-//        currentCamera = backCamera
-        
     }
-    
-    func setUpInputOutput(){
-        do {
-            let captureDeviceInput = try AVCaptureDeviceInput(device: currentCamera!)
-            captureSession.addInput(captureDeviceInput)
-            photoOutPut.setPreparedPhotoSettingsArray([AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])], completionHandler: nil)
-            if captureSession.canAddOutput(photoOutPut){
-                captureSession.addOutput(photoOutPut)
-            }
-        } catch let error {
-            print(error)
-        }
-    }
-    
-    func setUpPreviewLayOut(){
-        cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        cameraPreviewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        cameraPreviewLayer?.connection?.videoOrientation = .portrait
-        cameraPreviewLayer?.frame = view.frame
-        self.view.layer.insertSublayer(cameraPreviewLayer!, at: 0)
-        
-    }
-    
-    func startRunningCaptureSession(){
-        captureSession.startRunning()
-    }
-    
+   
     func addBodyActionView(){
-        let bodyActions = ["Blink your right eye 2 times", "Blink you left eye 3 times", "touch your nose with your tounge"]
-        let random = Int.random(in: 0...2)
+        self.cameraService.delegate = self
+        let bodyActions = ["Turn your face to the right", "Turn your face to the left"]
+        let random = Int.random(in: 0...bodyActions.count - 1)
         let dialog = UIAlertController(title:"Prove you are not a robot", message: bodyActions[random], preferredStyle: .alert)
         let okAction = UIAlertAction(title:"OK", style: .default, handler: {(alert:UIAlertAction!)-> Void in
-            self.takePhoto()
+            self.viFaceCorp.frame = CGRect(x: self.view.frame.width * 0.15, y: self.view.frame.height * 0.25, width: self.view.frame.width * 0.7, height: self.view.frame.height * 0.5)
+            self.view.addSubview(self.viFaceCorp)
+            self.testType = bodyActions[random]
+            self.cameraService.startFraming = true
+            self.faceCropFrame = self.viFaceCorp.frame
+            print(self.viFaceCorp.frame)
+            print(self.viFaceCorp.layer.frame)
+//            self.takePhoto()
         })
         dialog.addAction(okAction)
         self.present(dialog, animated:true, completion:nil)
@@ -108,19 +102,29 @@ class CameraVC: UIViewController {
     }
     
     func takePhoto(){
-        sleep(2)
-        let shutterView = UIView(frame: cameraPreviewLayer?.frame ?? .zero)
-        shutterView.backgroundColor = UIColor.black
-        view.addSubview(shutterView)
-        UIView.animate(withDuration: 0.3, animations: {
-            shutterView.alpha = 0
-        }, completion: { (_) in
-            shutterView.removeFromSuperview()
-            let settings = AVCapturePhotoSettings()
-            self.photoOutPut.capturePhoto(with: settings, delegate: self)
-        })
+        cameraService.capturePhoto { [weak self] image in
+            guard let self = self else {return }
+            self.testType = nil
+            self.min = nil
+            self.mid = nil
+            self.max = nil
+            let vc = ImageViewVC()
+            vc.image = image
+            self.present(vc, animated: true, completion: nil)
+//            self.show(image: image)
+        }
+//        sleep(2)
+//        let shutterView = UIView(frame: previewLayer?.frame ?? .zero)
+//        shutterView.backgroundColor = UIColor.black
+//        view.addSubview(shutterView)
+//        UIView.animate(withDuration: 0.3, animations: {
+//            shutterView.alpha = 0
+//        }, completion: { (_) in
+//            shutterView.removeFromSuperview()
+//            let settings = AVCapturePhotoSettings()
+//            self.photoOutPut.capturePhoto(with: settings, delegate: self)
+//        })
     }
-    
     // MARK: -Selectors
     
     @objc func handleCloseButton(sender: UIButton) {
@@ -130,19 +134,19 @@ class CameraVC: UIViewController {
     @objc func handleCapturePhoto(sender: UIButton) {
 //        addColorTest()
 //        addCalculationTest()
-//        addBodyActionView()
-        let random = Int.random(in: 1...3)
-        switch random {
-        case 1:
-            addBodyActionView()
-        case 2:
-            addColorTest()
-        case 3:
-            addCalculationTest()
-
-        default: break
-
-        }
+        addBodyActionView()
+//        let random = Int.random(in: 1...3)
+//        switch random {
+//        case 1:
+//            addBodyActionView()
+//        case 2:
+//            addColorTest()
+//        case 3:
+//            addCalculationTest()
+//
+//        default: break
+//
+//        }
     }
     
     // MARK: -SetUpLayOut
@@ -210,26 +214,17 @@ class CameraVC: UIViewController {
         vi.translatesAutoresizingMaskIntoConstraints = false
         return vi
     }()
+    
+    let viFaceCorp: UIView = {
+        let vi = UIView()
+        vi.backgroundColor = .clear
+        vi.layer.borderWidth = 2
+        vi.layer.borderColor = UIColor.gray.cgColor
+        return vi
+    }()
 }
 
 // MARK: -Extensions
-extension CameraVC: AVCapturePhotoCaptureDelegate {
-    
-    
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        
-        if let error = error {
-            print("trigger error \(error)")
-        }
-        
-        if let imageDate = photo.fileDataRepresentation() {
-            let image = UIImage(data: imageDate)
-            let vc = ImageViewVC()
-            vc.image = image
-            present(vc, animated: true, completion: nil)
-        }
-    }
-}
 
 extension CameraVC: CalculationTestViewDelegate {
     func equationSolved() {
@@ -240,5 +235,66 @@ extension CameraVC: CalculationTestViewDelegate {
 extension CameraVC: ColorTestVCDelegate {
     func colorChoosed() {
         takePhoto()
+    }
+}
+
+extension CameraVC: CameraServiceDelegate {
+    func didStartFraming(faceObservations: [VNFaceObservation]) {
+        var maxX: CGFloat?
+        var midX: CGFloat?
+        var minX: CGFloat?
+                
+        for faceobservation in faceObservations {
+            
+            let bounding = faceobservation.boundingBox
+            
+            let transform = CGAffineTransform(translationX: bounding.origin.x, y: bounding.origin.y).scaledBy(x: self.faceCropFrame.width, y: self.faceCropFrame.height)
+            
+            let topLeft = CGPoint(x: bounding.origin.x, y: bounding.origin.y)
+            let topRight = CGPoint(x: bounding.maxX, y: bounding.minY)
+            let bottomLeft = CGPoint(x: bounding.minX, y: bounding.maxY)
+//            let bottomRight = CGPoint(x: bounding.maxX, y: bounding.maxY)
+            let convertedTopLeft = topLeft.applying(transform)
+            let convertedTopRight = topRight.applying(transform)
+            let convertedBottomLeft = bottomLeft.applying(transform)
+//            let convertedBottomRight = bottomRight.applying(transform)
+
+            
+            if convertedTopLeft.x >= self.faceCropFrame.origin.x &&
+                convertedTopRight.x <= self.faceCropFrame.maxX &&
+//                convertedTopLeft.y >= self.faceCropFrame.origin.y &&
+                convertedBottomLeft.y <= self.faceCropFrame.maxY {
+//            if self.faceCropFrame.contains(rect){
+                print("Succeded")
+                if let landmarks = faceobservation.landmarks {
+                    minX = convertedTopLeft.x
+//                        print("minX \(minX)")
+                    maxX = convertedTopRight.x
+//                        print("maxX \(maxX)")
+                    if let medianLine: VNFaceLandmarkRegion2D = landmarks.medianLine, medianLine.normalizedPoints.count > 0{
+                        let convertedMid = medianLine.normalizedPoints[0].applying(transform)
+                        midX = convertedMid.x
+//                        print("midX \(midX)")
+                    }
+                }
+                if let midX = midX, let minX = minX, let maxX = maxX{
+                    if testType == "Turn your face to the right" {
+                        if midX >= maxX - 70 {
+                            cameraService.startFraming = false
+//                            print("Max \(maxX), mid \(midX), min \(minX)")
+//                            print("done")
+                            takePhoto()
+                        }
+                    } else if testType == "Turn your face to the left" {
+                        if midX <= minX + 20 {
+                            cameraService.startFraming = false
+//                            print("Max \(maxX), mid \(midX), min \(minX)")
+//                            print("done")
+                            takePhoto()
+                        }
+                    }
+                }
+            }
+        }
     }
 }

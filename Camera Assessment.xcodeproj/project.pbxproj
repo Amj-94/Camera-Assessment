@@ -12,6 +12,7 @@
 		523105F0258C003900FED6C0 /* BodyActiosTestVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 523105EF258C003900FED6C0 /* BodyActiosTestVC.swift */; };
 		523105F3258C8A4700FED6C0 /* CalculationTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 523105F2258C8A4700FED6C0 /* CalculationTestView.swift */; };
 		523105F6258C981C00FED6C0 /* ColorTestVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 523105F5258C981C00FED6C0 /* ColorTestVC.swift */; };
+		52507BA125911E79000A8C28 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52507BA025911E79000A8C28 /* CameraService.swift */; };
 		52B6B500258BDB4D004C6E70 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B6B4FF258BDB4D004C6E70 /* AppDelegate.swift */; };
 		52B6B502258BDB4D004C6E70 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B6B501258BDB4D004C6E70 /* SceneDelegate.swift */; };
 		52B6B504258BDB4D004C6E70 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B6B503258BDB4D004C6E70 /* ViewController.swift */; };
@@ -26,6 +27,7 @@
 		523105EF258C003900FED6C0 /* BodyActiosTestVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyActiosTestVC.swift; sourceTree = "<group>"; };
 		523105F2258C8A4700FED6C0 /* CalculationTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTestView.swift; sourceTree = "<group>"; };
 		523105F5258C981C00FED6C0 /* ColorTestVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTestVC.swift; sourceTree = "<group>"; };
+		52507BA025911E79000A8C28 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		52B6B4FC258BDB4D004C6E70 /* Camera Assessment.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Camera Assessment.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		52B6B4FF258BDB4D004C6E70 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		52B6B501258BDB4D004C6E70 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -78,6 +80,7 @@
 				523105EF258C003900FED6C0 /* BodyActiosTestVC.swift */,
 				523105F2258C8A4700FED6C0 /* CalculationTestView.swift */,
 				523105F5258C981C00FED6C0 /* ColorTestVC.swift */,
+				52507BA025911E79000A8C28 /* CameraService.swift */,
 			);
 			path = "Camera Assessment";
 			sourceTree = "<group>";
@@ -152,6 +155,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				52507BA125911E79000A8C28 /* CameraService.swift in Sources */,
 				52B6B504258BDB4D004C6E70 /* ViewController.swift in Sources */,
 				523105EB258BF30D00FED6C0 /* ImageViewVC.swift in Sources */,
 				52B6B500258BDB4D004C6E70 /* AppDelegate.swift in Sources */,
